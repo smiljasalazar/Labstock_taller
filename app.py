@@ -362,10 +362,10 @@ elif page == "🔄 Movimientos":
                         idx   = opciones.index(sel)
                         prod  = productos.iloc[idx]
                         db.registrar_movimiento(
-                            prod['id'], prod['codigo'], prod['nombre'],
-                            prod['cajon'], 'entrada', cant_e, nota_e
+                            int(prod['id']), str(prod['codigo']), str(prod['nombre']),
+                            str(prod['cajon']), 'entrada', int(cant_e), str(nota_e)
                         )
-                        db.actualizar_stock(prod['id'], int(prod['stock']) + cant_e)
+                        db.actualizar_stock(int(prod['id']), int(prod['stock']) + int(cant_e))
                         st.success(f"✅ +{cant_e} unidades de **{prod['nombre']}**")
                         refresh()
 
@@ -385,10 +385,10 @@ elif page == "🔄 Movimientos":
                             st.error(f"❌ Stock insuficiente. Disponible: {prod2['stock']}")
                         else:
                             db.registrar_movimiento(
-                                prod2['id'], prod2['codigo'], prod2['nombre'],
-                                prod2['cajon'], 'salida', cant_s, nota_s
+                                int(prod2['id']), str(prod2['codigo']), str(prod2['nombre']),
+                                str(prod2['cajon']), 'salida', int(cant_s), str(nota_s)
                             )
-                            db.actualizar_stock(prod2['id'], int(prod2['stock']) - cant_s)
+                            db.actualizar_stock(int(prod2['id']), int(prod2['stock']) - int(cant_s))
                             st.success(f"✅ -{cant_s} unidades de **{prod2['nombre']}**")
                             refresh()
 
