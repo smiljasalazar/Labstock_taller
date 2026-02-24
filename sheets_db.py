@@ -16,10 +16,20 @@ class SheetsDB:
 
     # ── PRODUCTOS ──────────────────────────────────────────────
     def get_productos(self) -> pd.DataFrame:
-        res = self.db.table("productos").select("*").order("nombre").execute()
-        if not res.data:
+        all_data = []
+        offset = 0
+        limit = 1000
+        while True:
+            res = self.db.table("productos").select("*").order("nombre").range(offset, offset + limit - 1).execute()
+            if not res.data:
+                break
+            all_data.extend(res.data)
+            if len(res.data) < limit:
+                break
+            offset += limit
+        if not all_data:
             return pd.DataFrame(columns=["id","codigo","nombre","cajon","stock","stock_minimo","fecha_creacion"])
-        df = pd.DataFrame(res.data)
+        df = pd.DataFrame(all_data)
         df['stock']        = pd.to_numeric(df['stock'],        errors='coerce').fillna(0).astype(int)
         df['stock_minimo'] = pd.to_numeric(df['stock_minimo'], errors='coerce').fillna(5).astype(int)
         return df
