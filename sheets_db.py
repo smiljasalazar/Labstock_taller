@@ -62,12 +62,12 @@ class SheetsDB:
 
     def registrar_movimiento(self, producto_id, codigo, nombre, cajon, tipo, cantidad, nota=""):
         self.db.table("movimientos").insert({
-            "producto_id":      producto_id,
-            "producto_codigo":  codigo,
-            "producto_nombre":  nombre,
-            "cajon":            cajon,
-            "tipo":             tipo,
-            "cantidad":         cantidad,
-            "nota":             nota,
+            "producto_id":      int(producto_id),
+            "producto_codigo":  str(codigo),
+            "producto_nombre":  str(nombre),
+            "cajon":            str(cajon),
+            "tipo":             str(tipo),
+            "cantidad":         int(cantidad),
+            "nota":             str(nota),
             "fecha":            datetime.now().isoformat()
         }).execute()
