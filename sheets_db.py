@@ -25,14 +25,17 @@ class SheetsDB:
         return df
 
     def add_producto(self, codigo, nombre, cajon, stock=0, stock_minimo=5):
-        self.db.table("productos").insert({
-            "codigo": codigo,
-            "nombre": nombre,
-            "cajon": cajon,
-            "stock": stock,
-            "stock_minimo": stock_minimo,
-            "fecha_creacion": datetime.now().isoformat()
-        }).execute()
+        try:
+            self.db.table("productos").insert({
+                "codigo": codigo,
+                "nombre": nombre,
+                "cajon": cajon,
+                "stock": stock,
+                "stock_minimo": stock_minimo,
+                "fecha_creacion": datetime.now().isoformat()
+            }).execute()
+        except Exception:
+            pass  # Ignorar duplicados
 
     def actualizar_stock(self, producto_id, nuevo_stock):
         self.db.table("productos").update({"stock": nuevo_stock}).eq("id", producto_id).execute()
