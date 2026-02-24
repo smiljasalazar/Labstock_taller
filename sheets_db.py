@@ -12,9 +12,8 @@ class SheetsDB:
         self._init_tables()
 
     def _init_tables(self):
-        pass  # Tablas creadas manualmente en Supabase SQL Editor
+        pass
 
-    # ── PRODUCTOS ──────────────────────────────────────────────
     def get_productos(self) -> pd.DataFrame:
         all_data = []
         offset = 0
@@ -37,20 +36,19 @@ class SheetsDB:
     def add_producto(self, codigo, nombre, cajon, stock=0, stock_minimo=5):
         try:
             self.db.table("productos").upsert({
-                "codigo": codigo,
-                "nombre": nombre,
-                "cajon": cajon,
-                "stock": stock,
-                "stock_minimo": stock_minimo,
+                "codigo": str(codigo),
+                "nombre": str(nombre),
+                "cajon": str(cajon),
+                "stock": int(stock),
+                "stock_minimo": int(stock_minimo),
                 "fecha_creacion": datetime.now().isoformat()
             }, on_conflict="codigo").execute()
         except Exception:
             pass
 
     def actualizar_stock(self, producto_id, nuevo_stock):
-        self.db.table("productos").update({"stock": nuevo_stock}).eq("id", producto_id).execute()
+        self.db.table("productos").update({"stock": int(nuevo_stock)}).eq("id", int(producto_id)).execute()
 
-    # ── MOVIMIENTOS ────────────────────────────────────────────
     def get_movimientos(self) -> pd.DataFrame:
         res = self.db.table("movimientos").select("*").order("fecha").execute()
         if not res.data:
