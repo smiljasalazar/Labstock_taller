@@ -300,7 +300,7 @@ elif page == "📦 Inventario":
             if 'fecha_vencimiento' in df.columns:
                 df['fecha_vencimiento'] = pd.to_datetime(df['fecha_vencimiento'], errors='coerce')
                 proximos = df[df['fecha_vencimiento'].notna() & 
-                             (df['fecha_vencimiento'].dt.date <= hoy + timedelta(days=90))]
+                             (df['fecha_vencimiento'] <= pd.Timestamp(hoy + timedelta(days=90)))]
                 if not proximos.empty:
                     st.warning(f"⚠️ {len(proximos)} producto(s) vencen en los próximos 90 días")
 
