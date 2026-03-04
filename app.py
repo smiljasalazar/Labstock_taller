@@ -394,6 +394,7 @@ elif page == "🔄 Movimientos":
                     sel = st.selectbox("Producto", opciones)
                     cant_e = st.number_input("Cantidad", min_value=1, value=1, key="cant_e")
                     nota_e = st.text_input("Referencia / Nota", placeholder="Opcional", key="nota_e")
+                    venc_e = st.date_input("Fecha de Vencimiento", value=None, key="venc_e")
                     if st.form_submit_button("✅ Confirmar Entrada", use_container_width=True):
                         idx   = opciones.index(sel)
                         prod  = productos.iloc[idx]
@@ -402,6 +403,8 @@ elif page == "🔄 Movimientos":
                             str(prod['cajon']), 'entrada', int(cant_e), str(nota_e)
                         )
                         db.actualizar_stock(int(prod['id']), int(prod['stock']) + int(cant_e))
+                        if venc_e:
+                            db.actualizar_vencimiento(int(prod['id']), venc_e)
                         st.success(f"✅ +{cant_e} unidades de **{prod['nombre']}**")
                         refresh()
 
@@ -414,6 +417,7 @@ elif page == "🔄 Movimientos":
                     sel2 = st.selectbox("Producto", opciones2, key="sel_salida")
                     cant_s = st.number_input("Cantidad", min_value=1, value=1, key="cant_s")
                     nota_s = st.text_input("Referencia / Nota", placeholder="Opcional", key="nota_s")
+                    venc_s = st.date_input("Fecha de Vencimiento", value=None, key="venc_s")
                     if st.form_submit_button("✅ Confirmar Salida", use_container_width=True):
                         idx2  = opciones2.index(sel2)
                         prod2 = productos.iloc[idx2]
@@ -425,6 +429,8 @@ elif page == "🔄 Movimientos":
                                 str(prod2['cajon']), 'salida', int(cant_s), str(nota_s)
                             )
                             db.actualizar_stock(int(prod2['id']), int(prod2['stock']) - int(cant_s))
+                            if venc_s:
+                                db.actualizar_vencimiento(int(prod2['id']), venc_s)
                             st.success(f"✅ -{cant_s} unidades de **{prod2['nombre']}**")
                             refresh()
 
