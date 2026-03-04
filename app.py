@@ -268,7 +268,7 @@ elif page == "📦 Inventario":
 
     productos = load_productos()
 
-    tab1, tab2 = st.tabs(["📋 Ver Inventario", "➕ Agregar Producto"])
+    tab1, tab2, tab3 = st.tabs(["📋 Ver Inventario", "➕ Agregar Producto", "📅 Fechas de Vencimiento"])
 
     with tab1:
         col_search, col_filter = st.columns([2, 1])
@@ -293,16 +293,31 @@ elif page == "📦 Inventario":
                 return '🟢 OK'
 
             df['estado'] = df.apply(stock_status, axis=1)
+            
+            # Alerta vencimientos próximos
+            from datetime import date, timedelta
+            hoy = date.today()
+            if 'fecha_vencimiento' in df.columns:
+                df['fecha_vencimiento'] = pd.to_datetime(df['fecha_vencimiento'], errors='coerce')
+                proximos = df[df['fecha_vencimiento'].notna() & 
+                             (df['fecha_vencimiento'].dt.date <= hoy + timedelta(days=90))]
+                if not proximos.empty:
+                    st.warning(f"⚠️ {len(proximos)} producto(s) vencen en los próximos 90 días")
+
             st.caption(f"{len(df)} producto(s) encontrado(s)")
+            cols_show = ['codigo','nombre','cajon','stock','stock_minimo','fecha_vencimiento','estado']
+            cols_show = [c for c in cols_show if c in df.columns]
             st.dataframe(
-                df[['codigo','nombre','cajon','stock','stock_minimo','estado']].rename(columns={
+                df[cols_show].rename(columns={
                     'codigo':'Código','nombre':'Producto','cajon':'Cajón',
-                    'stock':'Stock','stock_minimo':'Stock Mínimo','estado':'Estado'
+                    'stock':'Stock','stock_minimo':'Stock Mínimo',
+                    'fecha_vencimiento':'Vencimiento','estado':'Estado'
                 }),
                 use_container_width=True, hide_index=True,
                 column_config={
                     "Stock": st.column_config.NumberColumn(format="%d"),
                     "Stock Mínimo": st.column_config.NumberColumn(format="%d"),
+                    "Vencimiento": st.column_config.DateColumn(format="DD/MM/YYYY"),
                 }
             )
         else:
@@ -320,6 +335,7 @@ elif page == "📦 Inventario":
                 nuevo_stock  = st.number_input("Stock Inicial", min_value=0, value=0)
 
             nuevo_minstock = st.number_input("Stock Mínimo (alerta)", min_value=0, value=5)
+            nuevo_vencimiento = st.date_input("Fecha de Vencimiento (opcional)", value=None)
 
             submitted = st.form_submit_button("✅ Agregar Producto", use_container_width=True)
             if submitted:
@@ -328,9 +344,29 @@ elif page == "📦 Inventario":
                 elif not productos.empty and nuevo_codigo in productos['codigo'].values:
                     st.error(f"Ya existe el código {nuevo_codigo}")
                 else:
-                    db.add_producto(nuevo_codigo, nuevo_nombre, nuevo_cajon, nuevo_stock, nuevo_minstock)
+                    db.add_producto(nuevo_codigo, nuevo_nombre, nuevo_cajon, nuevo_stock, nuevo_minstock, nuevo_vencimiento)
                     st.success(f"✅ Producto '{nuevo_nombre}' agregado correctamente")
                     refresh()
+
+    with tab3:
+        st.markdown("### 📅 Editar Fecha de Vencimiento")
+        if not productos.empty:
+            opciones_v = [f"[{r['codigo']}] {r['nombre']}" for _, r in productos.iterrows()]
+            sel_v = st.selectbox("Selecciona producto", opciones_v)
+            idx_v = opciones_v.index(sel_v)
+            prod_v = productos.iloc[idx_v]
+            
+            fecha_actual = pd.to_datetime(prod_v.get('fecha_vencimiento'), errors='coerce')
+            fecha_actual = fecha_actual.date() if pd.notna(fecha_actual) else None
+            
+            nueva_fecha = st.date_input("Nueva fecha de vencimiento", value=fecha_actual)
+            
+            if st.button("💾 Guardar Fecha", use_container_width=True):
+                db.actualizar_vencimiento(int(prod_v['id']), nueva_fecha)
+                st.success(f"✅ Fecha de vencimiento actualizada para **{prod_v['nombre']}**")
+                refresh()
+        else:
+            st.info("No hay productos cargados.")
 
 # ══════════════════════════════════════════════════════════════
 # MOVIMIENTOS
